@@ -79,6 +79,10 @@ int main() {
     filename = "pi.txt";
   }
   std::ifstream input_file("../" + filename);
+  if (!input_file.is_open()) {
+    std::cout << "Invalid filename or unreachable file";
+    return 1;
+  }
   std::cout << std::fixed << std::setprecision(2);
 
   int pi_size = 1e9;
