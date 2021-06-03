@@ -71,7 +71,6 @@ std::vector<std::pair<size_t, size_t>> GenerateBlocks(size_t from,
 }
 
 int main() {
-  char* pi = new char[(int) 1e9 + 100];
   std::string filename;
   std::cout << "Enter filename (or \"0\" for pi.txt)\n";
   std::cin >> filename;
@@ -85,17 +84,19 @@ int main() {
   }
   std::cout << std::fixed << std::setprecision(2);
 
-  int pi_size = 1e9;
+  int max_size = 1e9;
+  char* pi = new char[max_size + 1];
   {
     TimeMeasurer T("Loading");
     int i = 0;
-    while (!input_file.eof() && i < pi_size) {
-      if (i % (pi_size / 25) == 0) {
-        std::cout << "Loading... " << 100 * (double) i / pi_size << "%" << '\n';
+    while (!input_file.eof() && i < max_size) {
+      if (i % (max_size / 25) == 0) {
+        std::cout << "Loading... " << 100 * (double) i / max_size << "%"
+                  << '\n';
       }
       pi[i++] = input_file.get();
     }
-    pi_size = i;
+    max_size = i;
     std::cout << "Loaded!\n";
   }
 
@@ -117,7 +118,7 @@ int main() {
 
       {
         TimeMeasurer T("Search");
-        auto blocks = GenerateBlocks(0, pi_size, needed.size(), thread_number);
+        auto blocks = GenerateBlocks(0, max_size, needed.size(), thread_number);
         std::cout << "Running on " << blocks.size() << " threads\n";
         for (int i = 0; i < thread_number; i++) {
           threads[i] = std::make_unique<std::thread>(FindEntries,
