@@ -25,6 +25,7 @@ struct TimeMeasurer {
 };
 
 void FindEntries(char const* text,
+                 size_t index_offset,
                  size_t length,
                  const std::string& string,
                  std::vector<size_t>& results,
@@ -47,7 +48,7 @@ void FindEntries(char const* text,
     std::vector<size_t> res;
     for (int i = 0; i < prefix_function.size(); i++) {
       if (prefix_function[i] == string.size()) {
-        res.push_back(i - 2 * string.size());
+        res.push_back(index_offset + i - 2 * string.size());
       }
     }
     mutex.lock();
@@ -108,7 +109,7 @@ int main() {
   }
   std::cout << std::fixed << std::setprecision(2);
 
-  int size = 1e9;
+  int size = 2e9;
   char* text = new char[size + 1];
   {
     TimeMeasurer T("Loading");
@@ -123,6 +124,7 @@ int main() {
     size = i;
     std::cout << "Loaded!\n";
   }
+  std::cout << "Found " << size << " symbols in file\n";
 
   while (true) {
     std::cout << GetGreenText(
@@ -148,6 +150,7 @@ int main() {
         for (int i = 0; i < thread_number; i++) {
           threads[i] = std::make_unique<std::thread>(FindEntries,
                                                      text + blocks[i].first,
+                                                     blocks[i].first,
                                                      blocks[i].second
                                                          - blocks[i].first,
                                                      string,
@@ -166,7 +169,7 @@ int main() {
       int number;
       std::cin >> number;
 
-      {
+      if (number > 0) {
         TimeMeasurer time_measurer("Sorting");
         std::sort(indexes.begin(), indexes.end());
       }
