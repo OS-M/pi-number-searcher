@@ -3,7 +3,6 @@
 #include <mutex>
 #include <fstream>
 #include <iomanip>
-#include <map>
 #include <vector>
 #include <bitset>
 #include <memory>
@@ -25,18 +24,18 @@ struct TimeMeasurer {
   std::chrono::time_point<std::chrono::high_resolution_clock> start;
 };
 
-void find_entries(const char* pi,
-                  size_t from,
-                  size_t to,
-                  const std::string& needed,
-                  std::vector<size_t>& results,
-                  std::mutex& mutex,
-                  size_t thread_number = 0) {
+void FindEntries(const char* pi,
+                 size_t from,
+                 size_t to,
+                 const std::string& string,
+                 std::vector<size_t>& results,
+                 std::mutex& mutex,
+                 size_t thread_number = 0) {
   {
     TimeMeasurer T("Thread #" + std::to_string(thread_number));
     for (size_t i = from; i < to; i++) {
-      if (i + needed.size() <= to
-          && std::string(pi + i, pi + i + needed.size()) == needed) {
+      if (i + string.size() <= to
+          && std::string(pi + i, pi + i + string.size()) == string) {
         std::lock_guard<std::mutex> lg(mutex);
         results.push_back(i);
       }
@@ -73,7 +72,13 @@ std::vector<std::pair<size_t, size_t>> GenerateBlocks(size_t from,
 
 int main() {
   char* pi = new char[(int) 1e9 + 100];
-  std::ifstream input_file("../pi.txt");
+  std::string filename;
+  std::cout << "Enter filename (or \"0\" for pi.txt)\n";
+  std::cin >> filename;
+  if (filename == "0") {
+    filename = "pi.txt";
+  }
+  std::ifstream input_file("../" + filename);
   std::cout << std::fixed << std::setprecision(2);
 
   int pi_size = 1e9;
@@ -90,7 +95,11 @@ int main() {
     std::cout << "Loaded!\n";
   }
 
-  while (1) {
+  while (true) {
+    std::cout << "====\nCommands:\nFind (integer: number to find) "
+                 "(integer: number of threads)\n"
+                 "Substr (integer: position) (integer: count)\n====\n";
+
     std::string request;
     std::cin >> request;
     if (request == "Find" || request == "find") {
@@ -107,7 +116,7 @@ int main() {
         auto blocks = GenerateBlocks(0, pi_size, needed.size(), thread_number);
         std::cout << "Running on " << blocks.size() << " threads\n";
         for (int i = 0; i < thread_number; i++) {
-          threads[i] = std::make_unique<std::thread>(find_entries,
+          threads[i] = std::make_unique<std::thread>(FindEntries,
                                                      std::ref(pi),
                                                      blocks[i].first,
                                                      blocks[i].second,
@@ -121,13 +130,14 @@ int main() {
         }
       }
       std::cout << "--Found " << indexes.size() << " entries--\n";
-      std::cout << "Would you like to see results? ";
-      char c;
-      std::cin >> c;
-      if (c == 'y' || c == 'Y') {
-        for (auto elem : indexes) {
-          std::cout << elem + 1 << '\n';
-        }
+      std::cout << "How many entries show (they are not sorted)?\n";
+      int number;
+      std::cin >> number;
+
+      std::cout << "Found entries from positions (1-indexation):\n";
+      for (int i = 0; i < std::min(static_cast<int>(indexes.size()), number);
+           i++) {
+        std::cout << indexes[i] + 1 << '\n';
       }
     } else {
       int pos;
