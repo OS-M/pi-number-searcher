@@ -116,7 +116,7 @@ int main() {
       std::vector<std::unique_ptr<std::thread>> threads(thread_number);
 
       {
-        TimeMeasurer T("Processing");
+        TimeMeasurer T("Search");
         auto blocks = GenerateBlocks(0, pi_size, needed.size(), thread_number);
         std::cout << "Running on " << blocks.size() << " threads\n";
         for (int i = 0; i < thread_number; i++) {
@@ -137,6 +137,11 @@ int main() {
       std::cout << "How many entries show (they are not sorted)?\n";
       int number;
       std::cin >> number;
+
+      {
+        TimeMeasurer time_measurer("Sorting");
+        std::sort(indexes.begin(), indexes.end());
+      }
 
       std::cout << "Found entries from positions (1-indexation):\n";
       for (int i = 0; i < std::min(static_cast<int>(indexes.size()), number);

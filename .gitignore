@@ -1,6 +1,8 @@
 # .gitignore
 #.gitignore
 
+pi.txt
+
 # C++ objects and libs
 *.slo
 *.lo
